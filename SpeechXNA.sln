@@ -3,12 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeechXNA", "SpeechXNA\SpeechXNA\SpeechXNA.csproj", "{970DE3CD-B6F6-482B-8F42-AEB0AC659E33}"
 EndProject
-Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "SpeechXNAContent", "SpeechXNA\SpeechXNAContent\SpeechXNAContent.contentproj", "{849E2D07-0C8E-459B-9CA5-B8DBCEC6D62B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeechXNAContent", "SpeechXNA\SpeechXNAContent\SpeechXNAContent.contentproj", "{849E2D07-0C8E-459B-9CA5-B8DBCEC6D62B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FE2DD56C-C3F8-4B69-8555-315CF3C44679}"
-	ProjectSection(SolutionItems) = preProject
-		Performance1.psess = Performance1.psess
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

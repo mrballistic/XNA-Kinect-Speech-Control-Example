@@ -30,13 +30,23 @@ namespace SpeechXNA
         SpeechRecognitionEngine sre;
         Stream s;
 
-        Color bgColor = Color.AliceBlue;
+        // multipliers to change the channel value
+        float rMultiplier = 1.0f;
+        float gMultiplier = 1.0f;
+        float bMultiplier = 1.0f;
 
-        int rMultiplier = 1;
-        int gMultiplier = 1;
-        int bMultiplier = 1;
+        // largest value
+        const float maxVal = 5.0f;
 
+        // switches to control which channel is active
+        bool rOn = false;
+        bool gOn = false;
+        bool bOn = false;
+
+        // the video window
         Texture2D kinectRGBVideo;
+
+        // info for the top of the screen
         SpriteFont font;
         string kinectStatus = "Not connected";
         string speechStatus = "Not connected";
@@ -53,7 +63,6 @@ namespace SpeechXNA
         protected override void Initialize()
         {
             base.Initialize();
-            bgColor = Color.AliceBlue;
             KinectSensor.KinectSensors.StatusChanged += new EventHandler<StatusChangedEventArgs>(KinectSensors_StatusChanged);
             DiscoverKinectSensor();
         }
@@ -68,7 +77,6 @@ namespace SpeechXNA
             };
             return SpeechRecognitionEngine.InstalledRecognizers().Where(matchingFunc).FirstOrDefault();
         }
-
 
         private static void SreSpeechDetected(object sender, SpeechDetectedEventArgs e)
         {
@@ -102,21 +110,29 @@ namespace SpeechXNA
                 Console.WriteLine("*** setColor asked for " + e.Result.Text + ", with a confidence of: " + e.Result.Confidence.ToString());
                 speechStatus = "*** setColor asked for " + e.Result.Text + ", with a confidence of: " + e.Result.Confidence.ToString();
 
-                rMultiplier = gMultiplier = bMultiplier = 1;
-
                 switch (e.Result.Text)
                 {
                     case "red":
-                        rMultiplier = 5;
+                        rOn = true;
+                        gOn = false;
+                        bOn = false;
                         break;
                     case "green":
-                        gMultiplier = 5;
+                        rOn = false;
+                        gOn = true;
+                        bOn = false;
                         break;
                     case "blue":
-                        bMultiplier = 5;
+                        rOn = false;
+                        gOn = false;
+                        bOn = true;
                         break;
                     case "clear":
-                        rMultiplier = gMultiplier = bMultiplier = 1;
+                        rOn = false;
+                        gOn = false;
+                        bOn = false;
+                        break;
+                    default:
                         break;
                 }
 
@@ -145,6 +161,7 @@ namespace SpeechXNA
             {
                 if (colorImageFrame != null)
                 {
+
                     byte[] pixelsFromFrame = new byte[colorImageFrame.PixelDataLength];
 
                     colorImageFrame.CopyPixelDataTo(pixelsFromFrame);
@@ -159,7 +176,12 @@ namespace SpeechXNA
                     {
                         for (int x = 0; x < colorImageFrame.Width; x++, index += 4)
                         {
-                            color[y * colorImageFrame.Width + x] = new Color(rMultiplier * pixelsFromFrame[index + 2], gMultiplier * pixelsFromFrame[index + 1], bMultiplier * pixelsFromFrame[index + 0]);
+
+                            int r = (int)Math.Ceiling((double)rMultiplier * pixelsFromFrame[index + 2]);
+                            int g = (int)Math.Ceiling((double)gMultiplier * pixelsFromFrame[index + 1]);
+                            int b = (int)Math.Ceiling((double)bMultiplier * pixelsFromFrame[index]);
+
+                            color[y * colorImageFrame.Width + x] = new Color((int)r, (int)g, (int)b);
                         }
                     }
 
@@ -317,6 +339,36 @@ namespace SpeechXNA
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
 
+            // block changes the channel multiplier, based upon the boolean values set in the speech recognizer
+            if (rOn)
+            {
+                rMultiplier = MathHelper.Clamp(rMultiplier += .01f, 1.0f, maxVal);
+                gMultiplier = MathHelper.Clamp(gMultiplier -= .1f, 1.0f, maxVal);
+                bMultiplier = MathHelper.Clamp(bMultiplier -= .1f, 1.0f, maxVal);
+            }
+
+            if (gOn)
+            {
+                gMultiplier = MathHelper.Clamp(gMultiplier += .01f, 1.0f, maxVal);
+                rMultiplier = MathHelper.Clamp(rMultiplier -= .1f, 1.0f, maxVal);
+                bMultiplier = MathHelper.Clamp(bMultiplier -= .1f, 1.0f, maxVal);
+            }
+
+            if (bOn)
+            {
+                bMultiplier = MathHelper.Clamp(bMultiplier += .01f, 1.0f, maxVal);
+                rMultiplier = MathHelper.Clamp(rMultiplier -= .1f, 1.0f, maxVal);
+                gMultiplier = MathHelper.Clamp(gMultiplier -= .1f, 1.0f, maxVal);
+            }
+
+            // this is true either when user says "clear" or at init
+            if ((!rOn) && (!gOn) && (!bOn))
+            {
+                rMultiplier = MathHelper.Clamp(rMultiplier -= .1f, 1.0f, maxVal);
+                gMultiplier = MathHelper.Clamp(gMultiplier -= .1f, 1.0f, maxVal);
+                bMultiplier = MathHelper.Clamp(bMultiplier -= .1f, 1.0f, maxVal);
+            }
+
             base.Update(gameTime);
   
         }
@@ -336,8 +388,15 @@ namespace SpeechXNA
         
         protected override void UnloadContent()
         {
-            kinectSensor.Stop();
-            kinectSensor.Dispose();
+            try
+            {
+                kinectSensor.Stop();
+                kinectSensor.Dispose();
+            }
+            catch
+            {
+                Console.WriteLine("kinect shutdown exception");
+            }
         }
 
     }
