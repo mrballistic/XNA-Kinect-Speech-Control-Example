@@ -7,4 +7,6 @@ As with all Speech + Kinect demos, this requires:
 3. Kinect SDK 1.0
 4. Microsoft Speech SDK and runtimes (x86) v11
 
+While it's running, say "Red", "Green", "Blue", or "Clear" to change the camera view.
+
 Enjoy!
